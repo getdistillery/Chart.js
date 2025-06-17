@@ -277,21 +277,25 @@ class Chart {
   _resize(width, height) {
     const options = this.options;
     const canvas = this.canvas;
-    const aspectRatio = options.maintainAspectRatio && this.aspectRatio;
-    const newSize = this.platform.getMaximumSize(canvas, width, height, aspectRatio);
-    const newRatio = options.devicePixelRatio || this.platform.getDevicePixelRatio();
-    const mode = this.width ? 'resize' : 'attach';
 
-    this.width = newSize.width;
-    this.height = newSize.height;
-    this._aspectRatio = this.aspectRatio;
-    if (!retinaScale(this, newRatio, true)) {
-      return;
+    if (canvas) {
+      const aspectRatio = options.maintainAspectRatio && this.aspectRatio;
+      const newSize = this.platform.getMaximumSize(canvas, width, height, aspectRatio);
+      const newRatio = options.devicePixelRatio || this.platform.getDevicePixelRatio();
+
+      this.width = newSize.width;
+      this.height = newSize.height;
+      this._aspectRatio = this.aspectRatio;
+      if (!retinaScale(this, newRatio, true)) {
+        return;
+      }
+
+      this.notifyPlugins('resize', {size: newSize});
+
+      callCallback(options.onResize, [this, newSize], this);
     }
 
-    this.notifyPlugins('resize', {size: newSize});
-
-    callCallback(options.onResize, [this, newSize], this);
+    const mode = this.width ? 'resize' : 'attach';
 
     if (this.attached) {
       if (this._doResize(mode)) {
